@@ -7,6 +7,8 @@ import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 class Homescreen extends StatelessWidget {
   Homescreen({super.key});
 
+  int currentBAC = 90;
+
   @override
   Widget build(BuildContext context) {
     DateTime now =DateTime.now();
@@ -26,7 +28,7 @@ class Homescreen extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xffB9A706),
+        backgroundColor: const Color(0xffebd009),
         resizeToAvoidBottomInset: false,
           body: Column(
             children: [
@@ -58,15 +60,12 @@ class Homescreen extends StatelessWidget {
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10, top: 40),
+                    padding: const EdgeInsets.only(left: 10, right: 10, top: 50),
                     child: SfSparkBarChart(
+                      labelStyle: TextStyle(fontSize: 15),
                       labelDisplayMode: SparkChartLabelDisplayMode.all,
                       axisLineColor: Colors.white,
-                      data: <double>[
-                        10,
-                        9,
-                        8,
-                      ],
+                      data: <double>[1, 3, 10,],
                       color: Colors.deepOrange,
                     ),
                   ),
@@ -87,6 +86,33 @@ class Homescreen extends StatelessWidget {
               ),
 
               ),
+                Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10, top: 40),
+                child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.black, width: 5)
+                    ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Current BAC %: ",
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                        Text(
+                          "${currentBAC}%",
+                          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                    ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(left: 10, right: 10, top: 40),
                   child: Container(
@@ -115,7 +141,7 @@ class Homescreen extends StatelessWidget {
                               style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                             ),
                               Text(
-                            " the legal limit for drinking.",
+                            " the legal limit for driving.",
                             style: TextStyle(fontSize: 17,),
                           ),
                             ],

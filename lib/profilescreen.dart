@@ -1,12 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myalcoholtrackerapp/bottomnav.dart';
+import 'package:myalcoholtrackerapp/utility/text_fields.dart';
 
-class profilescreen extends StatelessWidget {
+const List<String> list = <String> [
+  'Male',
+  'Female',
+  'Prefer not to say',
+];
+
+class profilescreen extends StatefulWidget {
   const profilescreen({super.key});
 
   @override
+  State<profilescreen> createState() => _profilescreenState();
+}
+
+class _profilescreenState extends State<profilescreen> {
+  String dropdownValue = list.first;
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -19,26 +34,14 @@ class profilescreen extends StatelessWidget {
                 ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 20),
-                child: Container(
-                height: 75,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 5)
-                ),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Text(
-                          "Enter name here",
-                        style: TextStyle(fontSize: 30),
-              ),
+               Padding(
+                 padding: const EdgeInsets.only(left: 10, right: 10),
+                 child: TextField(
+                      onChanged: (value) {},
+                      autocorrect: false,
+                        decoration: kTextFieldDecoration().copyWith(hintText: "Enter your name")
                     ),
-                  ),
-                ),
-                ),
+               ),
               Padding(
         padding: const EdgeInsets.only(top: 20, left: 10),
         child: Text("Age",
@@ -47,26 +50,14 @@ class profilescreen extends StatelessWidget {
           ),
         ),
       ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 20),
-              child: Container(
-                height: 75,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 5)
-                ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      "Enter age here",
-                      style: TextStyle(fontSize: 30),
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: TextField(
+                    onChanged: (value) {},
+                    autocorrect: false,
+                    decoration: kTextFieldDecoration().copyWith(hintText: "Enter your age")
                 ),
               ),
-            ),
               Padding(
                 padding: const EdgeInsets.only(top: 20, left: 10),
                 child: Text("Email",
@@ -76,23 +67,11 @@ class profilescreen extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 20),
-                child: Container(
-                  height: 75,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black, width: 5)
-                  ),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Text(
-                        "Enter email here",
-                        style: TextStyle(fontSize: 30),
-                      ),
-                    ),
-                  ),
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: TextField(
+                    onChanged: (value) {},
+                    autocorrect: false,
+                    decoration: kTextFieldDecoration().copyWith(hintText: "Edit email")
                 ),
               ),
               Padding(
@@ -106,21 +85,34 @@ class profilescreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 20),
                 child: Container(
-                  height: 75,
+                  height: 50,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black, width: 5)
+                      color: Colors.brown[100] ,
+                      borderRadius: BorderRadius.circular(21),
+                      border: Border.all(color: Colors.blueAccent, width: 2)
                   ),
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: Row(
                         children: [
-                          DropdownButton(items: items, onChanged: onChanged),
-                          Text(
-                            "Gender",
-                            style: TextStyle(fontSize: 30),
+                          DropdownButton<String>(
+                            value: dropdownValue,
+                            icon: Icon(Icons.arrow_drop_down),
+                            elevation: 16,
+                            style: TextStyle(color: Colors.black, fontSize: 25),
+                            onChanged: (String? value) {
+                              setState(() {
+                                dropdownValue = value!;
+                              });
+                              },
+                            items: list.map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
@@ -128,7 +120,17 @@ class profilescreen extends StatelessWidget {
                   ),
                 ),
               ),
-          ],
+              SizedBox(
+                height: 100,
+              ),
+              Center(
+                child: ElevatedButton(onPressed: () {},
+                  child: Text("Sign out",
+                  style: TextStyle(fontSize: 50, color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       bottomNavigationBar: bottomnav(selectedIndex: 1,),

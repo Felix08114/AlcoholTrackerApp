@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myalcoholtrackerapp/homescreen.dart';
 import 'package:myalcoholtrackerapp/login_screen.dart';
 import 'package:myalcoholtrackerapp/loginregister_screen.dart';
+import 'package:myalcoholtrackerapp/signupscreen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

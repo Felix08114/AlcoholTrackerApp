@@ -6,8 +6,9 @@ InputDecoration kTextFieldDecoration() {
     contentPadding: EdgeInsets.all(5),
     fillColor: Colors.brown[100],
     filled: true,
-    border: OutlineInputBorder(
+    enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
+      borderSide: const BorderSide(color: Colors.blueAccent)
     ),
   );
 }

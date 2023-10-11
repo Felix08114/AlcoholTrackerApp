@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,22 @@ import 'package:myalcoholtrackerapp/helper/image_classification_helper.dart';
 import 'dart:io';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
+import 'package:firebase_auth/firebase_auth.dart';
+
+final _firestore = FirebaseFirestore.instance; //for database
+final auth = FirebaseAuth.instance;
+late User loggedInUser;
+Future<void> getCurrentUser() async {
+  try{
+    final user = await auth.currentUser;
+    if (user != null){
+      loggedInUser = user;
+    }
+  }
+  catch(e){
+    print(e);
+  }
+}
 
 class imagepreviewscreen extends StatefulWidget {
   const imagepreviewscreen({super.key, required this.picture});
@@ -26,13 +43,17 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
   late Map<String, double> classification;
   late ImageClassificationHelper imageClassificationHelper;
   List <bool> lights = [];
-  late List<String> finalClassification;
+  late List<String> finalClassification = [];
+
+  int ouncesEntered = 0;
+  String drinkselected = "";
 
   @override
   void initState() {
     super.initState();
     tensorFlowSetup();
     _loadlabels();
+    getCurrentUser();
     imageClassificationHelper = ImageClassificationHelper();
     imageClassificationHelper.initHelper();
   }
@@ -104,6 +125,8 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
                           lights.add(false);
                         }
                         lights[0] = true;
+                        drinkselected = finalClassification[0];
+                        print(loggedInUser.email);
                         _dialogBuilder(context);
                       },
                       child: Text("Analyze",
@@ -152,32 +175,47 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Confirm Drinks'),
-              content: SizedBox(
-                height: 300,
-                width: 100,
-                child: ListView.separated(
-                  itemBuilder: (BuildContext context, int index) {
-                    return Container(
-                      child: Row(
-                          children: [
-                            Text(finalClassification[index]),
-                          Switch(
-                              value: lights [index],
-                              activeColor: Colors.orange,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  for (int i=0; i<lights.length; i++){
-                                    lights[i] = false;
-                                  }
-                                  lights [index] = value;
-                                });
-                              }
-                          )
-                        ]
-                      ),
-                    );
-                  }, separatorBuilder: (BuildContext context, int index) => const Divider(), itemCount: finalClassification.length,
+              content: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      width: 300,
+                      child: ListView.separated(
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                            child: Row(
+                                children: [
+                                  Text(finalClassification[index]),
+                                Switch(
+                                    value: lights [index],
+                                    activeColor: Colors.orange,
+                                    onChanged: (bool value) {
+                                      setState(() {
+                                        for (int i=0; i<lights.length; i++){
+                                          lights[i] = false;
+                                        }
+                                        lights [index] = value;
+                                        drinkselected = finalClassification[index];
+                                      });
+                                    }
+                                )
+                              ]
+                            ),
+                          );
+                        }, separatorBuilder: (BuildContext context, int index) => const Divider(), itemCount: finalClassification.length,
             ),
+                    ),
+                    TextField(
+                      decoration: InputDecoration(hintText: "Enter volume (in oz)"),
+                      onChanged: (value){
+                        ouncesEntered = int.parse(value);
+                      },
+                      keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
+                    ),
+                  ],
+                ),
               ),
               actions: <Widget>[
                 TextButton(
@@ -195,13 +233,29 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
                 TextButton(
                   style: TextButton.styleFrom(
                     textStyle: Theme
-                        .of(context)
-                        .textTheme
-                        .labelLarge,
+                        .of(context).textTheme.labelLarge,
                   ),
                   child: const Text('Ok'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
+
+                  onPressed: () async {
+                    try
+
+                  {
+                    final user = await auth.currentUser;
+                    if (user != null){
+                      loggedInUser = user;
+                    }
+                  }
+                  catch(e){
+                    print(e);
+                  }
+                  print(loggedInUser.email);
+                    var docRef = _firestore.collection("drinks").doc(loggedInUser.email);
+                    DocumentSnapshot doc = await docRef.get();
+                    final data = doc.data() as Map<String, dynamic>;
+                    Map<String, int> submittedInfo = {drinkselected: ouncesEntered};
+                    String date = DateTime.now().toString().split(" ")[0];
+                    await docRef.set({date: submittedInfo},SetOptions(merge: true));
                   },
                 ),
               ],

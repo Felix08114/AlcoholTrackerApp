@@ -9,6 +9,8 @@ const List<String> list = <String> [
   'Prefer not to say',
 ];
 
+final auth = FirebaseAuth.instance;
+
 class profilescreen extends StatefulWidget {
   const profilescreen({super.key});
 
@@ -124,7 +126,10 @@ class _profilescreenState extends State<profilescreen> {
                 height: 100,
               ),
               Center(
-                child: ElevatedButton(onPressed: () {},
+                child: ElevatedButton(onPressed: () {
+                  auth.signOut();
+                  Navigator.pop(context);
+                },
                   child: Text("Sign out",
                   style: TextStyle(fontSize: 50, color: Colors.black),
                   ),

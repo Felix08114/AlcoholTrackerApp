@@ -3,7 +3,6 @@ import 'package:myalcoholtrackerapp/camerascreen.dart';
 import 'package:myalcoholtrackerapp/historyscreen.dart';
 import 'package:myalcoholtrackerapp/homescreen.dart';
 import 'package:myalcoholtrackerapp/profilescreen.dart';
-import 'package:myalcoholtrackerapp/trendscreen.dart';
 
 class bottomnav extends StatefulWidget {
   bottomnav({super.key, required this.selectedIndex, });
@@ -27,9 +26,6 @@ class _bottomnavState extends State<bottomnav> {
     if (index == 3) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => historyscreen()));
     }
-    if (index == 4) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => trendscreen()));
-    }
   }
 
 
@@ -52,9 +48,6 @@ class _bottomnavState extends State<bottomnav> {
         ),
         BottomNavigationBarItem(
             icon: (Icon(Icons.punch_clock)), label: "History"
-        ),
-        BottomNavigationBarItem(
-            icon: (Icon(Icons.bar_chart)), label: "Trends"
         ),
       ],
     );

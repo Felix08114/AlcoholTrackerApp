@@ -14,10 +14,11 @@ final _firestore = FirebaseFirestore.instance; //for database
 final auth = FirebaseAuth.instance;
 late User loggedInUser;
 Future<void> getCurrentUser() async {
-  try{
+  try {
     final user = await auth.currentUser;
-    if (user != null){
+    if (user != null) {
       loggedInUser = user;
+      print(loggedInUser.email);
     }
   }
   catch(e){
@@ -47,6 +48,7 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
 
   int ouncesEntered = 0;
   String drinkselected = "";
+  int count = 0;
 
   @override
   void initState() {
@@ -126,7 +128,6 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
                         }
                         lights[0] = true;
                         drinkselected = finalClassification[0];
-                        print(loggedInUser.email);
                         _dialogBuilder(context);
                       },
                       child: Text("Analyze",
@@ -238,25 +239,30 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
                   child: const Text('Ok'),
 
                   onPressed: () async {
-                    try
-
-                  {
-                    final user = await auth.currentUser;
-                    if (user != null){
-                      loggedInUser = user;
+                    try {
+                      final user = await auth.currentUser;
+                      if (user != null) {
+                        loggedInUser = user;
+                      }
                     }
-                  }
-                  catch(e){
-                    print(e);
-                  }
-                  print(loggedInUser.email);
-                    var docRef = _firestore.collection("drinks").doc(loggedInUser.email);
+                    catch (e) {
+                      print(e);
+                    }
+                    print(loggedInUser.email);
+                    var docRef = _firestore.collection("drinks").doc(
+                        loggedInUser.email);
                     DocumentSnapshot doc = await docRef.get();
                     final data = doc.data() as Map<String, dynamic>;
-                    Map<String, int> submittedInfo = {drinkselected: ouncesEntered};
+                    Map<String, int> submittedInfo = {
+                      drinkselected: ouncesEntered
+                    };
                     String date = DateTime.now().toString().split(" ")[0];
-                    await docRef.set({date: submittedInfo},SetOptions(merge: true));
-                  },
+                    await docRef.set(
+                        {date: submittedInfo}, SetOptions(merge: true));
+                    Navigator.popUntil(context, (route) {
+                      return count++ ==2;
+                    });
+                  }
                 ),
               ],
             );

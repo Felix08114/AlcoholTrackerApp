@@ -1,15 +1,66 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myalcoholtrackerapp/bottomnav.dart';
 import 'package:intl/intl.dart';
+import 'package:myalcoholtrackerapp/historyscreen.dart';
 import 'dart:convert';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class Homescreen extends StatelessWidget {
+final _firestore = FirebaseFirestore.instance;
+final auth = FirebaseAuth.instance;
+late User loggedinUser;
+
+class Homescreen extends StatefulWidget {
   Homescreen({super.key});
 
+  @override
+  State<Homescreen> createState() => _HomescreenState();
+}
+
+class _HomescreenState extends State<Homescreen> {
   int currentBAC = 90;
+  String todaysDate = "";
+  String firstDayOfWeek = "";
+  List<int> weeklyLog = [];
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    todaysDate = DateTime.now().toString().split(" ")[0];
+    firstDayOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday)).toString().split(" ")[0];
+    getWeeklyLog(firstDayOfWeek);
+  }
+
+  getWeeklyLog(String day) async{
+    try {
+      final user = await auth.currentUser;
+      if (user != null){
+        loggedInUser = user;
+      }
+      var docRef = _firestore.collection("drinks").doc(loggedInUser.email);
+      DocumentSnapshot doc = await docRef.get();
+      final data = await doc.data() as Map<String, dynamic>;
+      for(int i=0; i<7; i++){
+        if (data.keys.contains(day)){
+          int sum = 0;
+          data[day].forEach((innerkey, innervalue){
+            sum += innervalue as int;
+          });
+          weeklyLog.add(sum);
+        }
+        else{
+          weeklyLog.add(0);
+        }
+      }
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Widget build(BuildContext context) {
     DateTime now =DateTime.now();
     String formattedDate = DateFormat('kk:mm:ss \n EEE d MMM').format(now);
@@ -34,7 +85,7 @@ class Homescreen extends StatelessWidget {
             children: [
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(45,),
+                  padding: const EdgeInsets.all(10,),
                   child: Text(
                     welcomeMessage(),
                     style: TextStyle(fontSize: 40),
@@ -42,7 +93,21 @@ class Homescreen extends StatelessWidget {
                   ),
                 ),
               Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20),
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black, width: 5)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text("$todaysDate", style: TextStyle(color: Colors.black, fontSize: 30),)
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Container(
                   height: 350,
                   decoration: BoxDecoration(
@@ -53,7 +118,7 @@ class Homescreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Alcohol Consumption Today",
+                      "Alcohol Consumption This Week",
                       style: TextStyle(
                         fontSize: 20,
                         color: Colors.black
@@ -65,7 +130,7 @@ class Homescreen extends StatelessWidget {
                       labelStyle: TextStyle(fontSize: 15),
                       labelDisplayMode: SparkChartLabelDisplayMode.all,
                       axisLineColor: Colors.white,
-                      data: <double>[1, 3, 10,],
+                      data: <double>[1, 3, 10, 9, 2, 4, 5, ],
                       color: Colors.deepOrange,
                     ),
                   ),
@@ -74,17 +139,20 @@ class Homescreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Text("Morning"),
-                          Text("Afternoon"),
-                          Text("Evening"),
+                          Text("Mon"),
+                          Text("Tue"),
+                          Text("Wed"),
+                          Text("Thur"),
+                          Text("Fri"),
+                          Text("Sat"),
+                          Text("Sun"),
                         ],
                       ),
                     )
                   ],
 
                 ),
-              ),
-
+                ),
               ),
                 Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10, top: 40),
@@ -99,7 +167,7 @@ class Homescreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Current BAC %: ",
+                          "Current BAC: ",
                           style: TextStyle(
                             fontSize: 30,
                           ),
@@ -158,4 +226,20 @@ class Homescreen extends StatelessWidget {
       ),
     );
   }
+
+  Container datePicker(){
+    return Container(
+      height: 300,
+      width: 300,
+      child: SfDateRangePicker(
+      initialSelectedDate: DateTime.now(),
+        onSubmit: (value){
+        Navigator.pop(context);
+        },
+        onCancel: (){
+        Navigator.pop(context);
+        },
+      ),
+    );
   }
+}

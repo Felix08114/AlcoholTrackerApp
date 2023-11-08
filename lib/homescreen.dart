@@ -7,6 +7,7 @@ import 'package:myalcoholtrackerapp/historyscreen.dart';
 import 'dart:convert';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:jiffy/jiffy.dart';
 
 final _firestore = FirebaseFirestore.instance;
 final auth = FirebaseAuth.instance;
@@ -49,12 +50,20 @@ class _HomescreenState extends State<Homescreen> {
           data[day].forEach((innerkey, innervalue){
             sum += innervalue as int;
           });
-          weeklyLog.add(sum);
+          setState(() {
+            weeklyLog.add(sum);
+          });
         }
         else{
-          weeklyLog.add(0);
+          setState(() {
+            weeklyLog.add(0);
+          });
         }
       }
+      DateTime nextDay = DateTime.parse(day + " 10:00:00.000");
+      nextDay = Jiffy.parseFromDateTime(nextDay).add(days: 1).dateTime;
+      day = nextDay.toString().split(" ")[0];
+
 
     } catch (e) {
       print(e);
@@ -130,7 +139,7 @@ class _HomescreenState extends State<Homescreen> {
                       labelStyle: TextStyle(fontSize: 15),
                       labelDisplayMode: SparkChartLabelDisplayMode.all,
                       axisLineColor: Colors.white,
-                      data: <double>[1, 3, 10, 9, 2, 4, 5, ],
+                      data: weeklyLog.isNotEmpty ? weeklyLog : [0, 0, 0, 0, 0, 0, 0],
                       color: Colors.deepOrange,
                     ),
                   ),

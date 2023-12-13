@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:myalcoholtrackerapp/bottomnav.dart';
 import 'package:myalcoholtrackerapp/utility/text_fields.dart';
+import 'package:myalcoholtrackerapp/utility/userInfo.dart';
+
+import 'historyscreen.dart';
 
 const List<String> list = <String> [
   'Male',
@@ -10,17 +15,33 @@ const List<String> list = <String> [
 ];
 
 final auth = FirebaseAuth.instance;
+final FlutterSecureStorage _storage = FlutterSecureStorage();
+int count = 0;
+late User loggedinUser;
+final _firestore = FirebaseFirestore.instance;
+final weightTextController = TextEditingController();
+
 
 class profilescreen extends StatefulWidget {
   const profilescreen({super.key});
 
   @override
   State<profilescreen> createState() => _profilescreenState();
+
 }
 
 class _profilescreenState extends State<profilescreen> {
-  String dropdownValue = list.first;
+  String dropdownValue = user_Info_gender;
   @override
+
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUserInfo();
+    weightTextController.text = user_Info_Weight.toString();
+  }
+
+
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -38,15 +59,14 @@ class _profilescreenState extends State<profilescreen> {
               ),
                Padding(
                  padding: const EdgeInsets.only(left: 10, right: 10),
-                 child: TextField(
-                      onChanged: (value) {},
-                      autocorrect: false,
-                        decoration: kTextFieldDecoration().copyWith(hintText: "Enter your name")
-                    ),
+                 child: Text(user_Info_Name,
+                 style: TextStyle(
+                   fontSize: 20
+                 ),),
                ),
               Padding(
         padding: const EdgeInsets.only(top: 20, left: 10),
-        child: Text("Age",
+        child: Text("Weight",
           style: TextStyle(
               fontSize: 25
           ),
@@ -55,14 +75,20 @@ class _profilescreenState extends State<profilescreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10),
                 child: TextField(
-                    onChanged: (value) {},
-                    autocorrect: false,
-                    decoration: kTextFieldDecoration().copyWith(hintText: "Enter your age")
+                  onSubmitted: (value){
+                    _firestore.collection("userData").doc(auth.currentUser?.email).update({
+                      "Weight" : int.parse(value),
+                    });
+                    user_Info_Weight = int.parse(value);
+                  },
+                  controller: weightTextController,
+                  keyboardType: TextInputType.number,
+                  decoration: kTextFieldDecoration().copyWith(hintText: "Enter your weight")
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20, left: 10),
-                child: Text("Email",
+              const Padding(
+                padding: EdgeInsets.only(top: 20, left: 10),
+                child: Text("Edit Email",
                   style: TextStyle(
                       fontSize: 25
                   ),
@@ -70,14 +96,10 @@ class _profilescreenState extends State<profilescreen> {
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10),
-                child: TextField(
-                    onChanged: (value) {},
-                    autocorrect: false,
-                    decoration: kTextFieldDecoration().copyWith(hintText: "Edit email")
-                ),
+                child: Text(auth.currentUser?.email??""),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20, left: 10),
+              const Padding(
+                padding: EdgeInsets.only(top: 20, left: 10),
                 child: Text("Gender",
                   style: TextStyle(
                       fontSize: 25
@@ -107,6 +129,10 @@ class _profilescreenState extends State<profilescreen> {
                             onChanged: (String? value) {
                               setState(() {
                                 dropdownValue = value!;
+                                _firestore.collection("userData").doc(auth.currentUser?.email).update({
+                                  "Gender" : value,
+                                });
+                                user_Info_gender = value;
                               });
                               },
                             items: list.map<DropdownMenuItem<String>>((String value) {
@@ -126,9 +152,12 @@ class _profilescreenState extends State<profilescreen> {
                 height: 100,
               ),
               Center(
-                child: ElevatedButton(onPressed: () {
+                child: ElevatedButton(onPressed: () async {
                   auth.signOut();
-                  Navigator.pop(context);
+                  await _storage.deleteAll();
+                  Navigator.popUntil(context, (route) {
+                    return count++ ==2;
+                  });
                 },
                   child: Text("Sign out",
                   style: TextStyle(fontSize: 50, color: Colors.black),

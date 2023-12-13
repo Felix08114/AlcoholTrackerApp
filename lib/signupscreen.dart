@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:myalcoholtrackerapp/homescreen.dart';
 import 'package:myalcoholtrackerapp/login_screen.dart';
@@ -6,6 +7,9 @@ import 'package:myalcoholtrackerapp/utility/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:myalcoholtrackerapp/utility/userInfo.dart';
+
+final _firestore = FirebaseFirestore.instance;
 
 class signupscreen extends StatefulWidget {
   const signupscreen({super.key});
@@ -144,14 +148,25 @@ class _signupscreenState extends State<signupscreen> {
         Center(
         child:
         SignupButton(onPressed: () async {
-          setState(() {
+
+          if (formKey.currentState!.validate()){
+            setState(() {
             showspinner = true;
           });
-          if (formKey.currentState!.validate()){
             try{
               final newUser = await _auth.createUserWithEmailAndPassword(
                   email: email, password: password);
-          if(newUser != null){Navigator.push(context,
+          if(newUser != null) {
+            await _firestore.collection("drinks").doc(email).set({});
+            await _firestore.collection("userData").doc(email).set({
+            'Name' : name,
+            'Gender' : "Prefer not to say",
+            'Weight' : 1,
+            });
+            user_Info_Name = name;
+            user_Info_gender = "Prefer not to say";
+            user_Info_Weight = 1;
+          Navigator.push(context,
           MaterialPageRoute(
           builder:
           (context) =>
@@ -161,7 +176,7 @@ class _signupscreenState extends State<signupscreen> {
             catch(e){
               print(e);
               ScaffoldMessenger.of(context)
-              .showSnackBar(snackBar(e.toString().split(']')[1]
+                  .showSnackBar(snackBar(e.toString().split(']')[1]
               ));
             }
             setState(() {

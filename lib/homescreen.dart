@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:myalcoholtrackerapp/bottomnav.dart';
 import 'package:intl/intl.dart';
 import 'package:myalcoholtrackerapp/historyscreen.dart';
+import 'package:myalcoholtrackerapp/utility/calculatingBAC.dart';
 import 'dart:convert';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -44,11 +45,14 @@ class _HomescreenState extends State<Homescreen> {
       var docRef = _firestore.collection("drinks").doc(loggedInUser.email);
       DocumentSnapshot doc = await docRef.get();
       final data = await doc.data() as Map<String, dynamic>;
+
       for(int i=0; i<7; i++){
-        if (data.keys.contains(day)){
+    if (data.keys.contains(day)){
           int sum = 0;
-          data[day].forEach((innerkey, innervalue){
-            sum += innervalue as int;
+          data[day].forEach((drinkType, timeAndAmount){
+           timeAndAmount.forEach((time,amount){
+           sum += amount as int;
+           });
           });
           setState(() {
             weeklyLog.add(sum);
@@ -59,10 +63,10 @@ class _HomescreenState extends State<Homescreen> {
             weeklyLog.add(0);
           });
         }
+        DateTime nextDay = DateTime.parse(day + " 10:00:00.000");
+    nextDay = Jiffy.parseFromDateTime(nextDay).add(days: 1).dateTime;
+    day = nextDay.toString().split(" ")[0];
       }
-      DateTime nextDay = DateTime.parse(day + " 10:00:00.000");
-      nextDay = Jiffy.parseFromDateTime(nextDay).add(days: 1).dateTime;
-      day = nextDay.toString().split(" ")[0];
 
 
     } catch (e) {
@@ -175,15 +179,16 @@ class _HomescreenState extends State<Homescreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Current BAC: ",
-                          style: TextStyle(
-                            fontSize: 30,
-                          ),
-                        ),
-                        Text(
-                          "${currentBAC}%",
-                          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                        FutureBuilder<String>(
+                          future: getBloodAlcoholLevel(),
+                          builder: (context, snapshot) {
+                            return Text(
+                              "Current BAC: ${snapshot.data}%",
+                              style: TextStyle(
+                                fontSize: 30,
+                              ),
+                            );
+                          }
                         ),
                       ],
                     ),
@@ -191,37 +196,49 @@ class _HomescreenState extends State<Homescreen> {
                     ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 10, top: 40),
+                  padding: EdgeInsets.only(left: 10, right: 10, top: 40),
                   child: Container(
                     height: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.black, width: 5)
                     ),
-                    child: const Column(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Padding(
                           padding: EdgeInsets.only(left: 5, right: 5),
                           child:
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "You are ",
-                                style: TextStyle(
-                                  fontSize: 17,
-                                ),
-                              ),
-                            Text(
-                              "ABOVE",
-                              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                            ),
-                              Text(
-                            " the legal limit for driving.",
-                            style: TextStyle(fontSize: 17,),
-                          ),
-                            ],
+                          FutureBuilder<String>(
+                            future: getBloodAlcoholLevel(),
+                            builder: (context, snapshot) {
+                              if(snapshot.hasData) {
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "You are ",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                      ),
+                                    ),
+                                    Text(
+                                      double.parse(snapshot.data!) > 0.08
+                                          ? "ABOVE"
+                                          : "BELOW",
+                                      style: TextStyle(fontSize: 25,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      " the legal limit for driving.",
+                                      style: TextStyle(fontSize: 17,),
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return Container();
+                              }
+                            }
                           ),
                         ),
                           ],

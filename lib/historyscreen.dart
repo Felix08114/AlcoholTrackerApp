@@ -129,8 +129,12 @@ getDrinkHistory() async {
       final data = await doc.data() as Map<String, dynamic>;
 
       data.forEach((key, value) {
-        data[key].forEach((innerkey, innervalue){
-          listOfDrinks.add(Event("$innerkey: ${innervalue.toString()} oz"));
+        data[key].forEach((drinkType, timeandAmount){
+          int sum = 0;
+          timeandAmount.forEach((time,amount){
+            sum += amount as int;
+          });
+          listOfDrinks.add(Event("$drinkType: ${sum.toString()} oz"));
         });
       events[DateTime.parse("$key 00:00:00.000")] = listOfDrinks.toList();
       listOfDrinks.clear();

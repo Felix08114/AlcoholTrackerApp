@@ -239,26 +239,31 @@ class _imagepreviewscreenState extends State<imagepreviewscreen> {
                   child: const Text('Ok'),
 
                   onPressed: () async {
-                    try {
-                      final user = await auth.currentUser;
-                      if (user != null) {
-                        loggedInUser = user;
-                      }
-                    }
-                    catch (e) {
-                      print(e);
-                    }
+
                     print(loggedInUser.email);
                     var docRef = _firestore.collection("drinks").doc(
                         loggedInUser.email);
                     DocumentSnapshot doc = await docRef.get();
-                    final data = doc.data() as Map<String, dynamic>;
-                    Map<String, int> submittedInfo = {
-                      drinkselected: ouncesEntered
-                    };
                     String date = DateTime.now().toString().split(" ")[0];
-                    await docRef.set(
-                        {date: submittedInfo}, SetOptions(merge: true));
+                    final data = doc.data() as Map<String, dynamic>;
+                    Map<String, int> ouncesAndTime = {DateTime.now().toString(): ouncesEntered};
+                    if (data.containsKey(date)){
+                      //if we have drink today
+                      var data2 = data[date];
+                      if (data2.containsKey(drinkselected)) {
+                        Map<String, dynamic> drinkData = data2[drinkselected];
+                        drinkData[DateTime.now().toString()] = ouncesEntered;
+                        Map<String, dynamic> submittedInfo = {drinkselected: drinkData};
+                        await docRef.set({date: submittedInfo}, SetOptions(merge: true));
+                      } else {
+                        Map<String, Map<String, int>> submittedInfo = {drinkselected: ouncesAndTime};
+                        await docRef.set({date: submittedInfo}, SetOptions(merge: true));
+                      }
+                    } else {
+                      Map<String, Map<String, int>> submittedInfo = {drinkselected: ouncesAndTime};
+                    await docRef.set({date: submittedInfo}, SetOptions(merge: true));
+                    }
+
                     Navigator.popUntil(context, (route) {
                       return count++ ==2;
                     });

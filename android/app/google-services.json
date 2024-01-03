@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:838289498088:android:2708922b20ee30656a8e5d",
         "android_client_info": {
-          "package_name": "com.example.myalcoholtrackerapp"
+          "package_name": "com.felixbai.alcohol_tracker"
         }
       },
       "oauth_client": [
